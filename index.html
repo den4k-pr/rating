@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>Оцінки моделей</title>
+<style>
+body {font-family:sans-serif;margin:2rem;background:#fafafa;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;}
+.card{background:white;padding:1rem;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.1);text-align:center;}
+button{margin-top:.5rem;padding:.3rem .8rem;}
+</style>
+</head>
+<body>
+<h1>Оцінки моделей</h1>
+<div id="grid" class="grid"></div>
+
+<script>
+const BIN_ID = "6900f54c43b1c97be987ac1d";
+const API_KEY = "$2a$10$.mM/3AtMsD1ap9ApkDduIOdz/0tt.j9613TBCoIV/equtWdmV8yky";
+const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+// завантаження
+async function load() {
+  const res = await fetch(`${API_URL}/latest`, {
+    headers: {"X-Master-Key": API_KEY}
+  });
+  const json = await res.json();
+  window.data = json.record;
+  render();
+}
+
+// збереження
+async function save() {
+  await fetch(API_URL, {
+    method:"PUT",
+    headers:{
+      "Content-Type":"application/json",
+      "X-Master-Key": API_KEY
+    },
+    body: JSON.stringify(window.data)
+  });
+}
+
+// малювання
+function render(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  window.data.models.forEach(m=>{
+    const div=document.createElement('div');
+    div.className='card';
+    div.innerHTML = `
+      <h3>${m.name}</h3>
+      <p>Середня: ${m.average.toFixed(1)}</p>
+      <p>Відгуків: ${m.count}</p>
+      <button onclick="addRating(${m.id})">+1 до лічильника</button>
+    `;
+    grid.appendChild(div);
+  });
+}
+
+// додавання оцінки
+function addRating(id){
+  const m = window.data.models.find(x=>x.id===id);
+  if(!m) return;
+  m.count++;
+  // оновлення середньої оцінки можна тут робити, якщо ти маєш окреме значення
+  save().then(render);
+}
+
+// якщо сторінку відкрито з ?model=3 — додає одразу
+const params = new URLSearchParams(location.search);
+if(params.has('model')){
+  load().then(()=>{
+    const id = +params.get('model');
+    addRating(id);
+  });
+} else {
+  load();
+}
+</script>
+</body>
+</html>
