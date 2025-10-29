@@ -4,41 +4,8 @@ const BIN_ID = "6900f54c43b1c97be987ac1d";
 const API_KEY = process.env.JSONBIN_MASTER_KEY || "$2a$10$.mM/3AtMsD1ap9ApkDduIOdz/0tt.j9613TBCoIV/equtWdmV8yky"; 
 const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
-async function parseFormBody(req) {
-    if (req.body && Object.keys(req.body).length > 0) {
-        return req.body;
-    }
-
-    const rawBody = await new Promise((resolve) => {
-        let data = '';
-        req.on('data', chunk => data += chunk.toString());
-        req.on('end', () => resolve(data));
-    });
-
-    if (!rawBody) return {};
-    
-    const contentType = req.headers['content-type'] || '';
-    
-    if (contentType.includes('application/x-www-form-urlencoded')) {
-        const params = new URLSearchParams(rawBody);
-        const body = {};
-        for (const [key, value] of params.entries()) {
-            body[key] = value;
-        }
-        return body;
-    } 
-    
-    if (contentType.includes('application/json')) {
-        try {
-            return JSON.parse(rawBody);
-        } catch (e) {
-            console.error("Failed to parse JSON body:", e);
-            return {};
-        }
-    }
-    
-    return {};
-}
+// Функцію parseFormBody видалено, використовуємо нативний req.body Vercel
+// якщо Content-Type: application/json
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -52,11 +19,21 @@ export default async function handler(req, res) {
         return res.status(200).json({});
     }
     
-    const body = await parseFormBody(req);
+    // Пряме використання req.body (Він повинен містити { model: 'X' })
+    const body = req.body;
     
     try {
+        // ЧИТАЄМО ЗНАЧЕННЯ З ТІЛА ЗАПИТУ, НАДІСЛАНОГО ФОРМОЮ
+        const model = body.model; 
+        const modelId = parseInt(model); 
+
+        if (isNaN(modelId)) {
+            return res.status(400).json({ 
+                AMP_FORM_ERROR: { message: 'Model ID is missing or invalid. Check the form field name.' } 
+            });
+        }
         
-        const modelId = 5; // ЖОРСТКО ЗАКОДОВАНЕ ЗНАЧЕННЯ ДЛЯ ТЕСТУ
+        // --- ЛОГІКА ОНОВЛЕННЯ JSONBIN.IO ---
 
         const loadRes = await fetch(`${API_URL}/latest`, {
             headers: {"X-Master-Key": API_KEY}
