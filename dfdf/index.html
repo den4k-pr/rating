@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=League+Gothic&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <title>Thank you</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    iframe {
+      display: none;
+      visibility: hidden;
+    }
+  </style>
+</head>
+<body style="display: flex; justify-content: center; align-items: center;">
+  <h1 style="font-size: 44px; font-family: Montserrat, sans-serif;">Thank you 💙</h1>
+
+  <script>
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+      const value = params.get("value");
+      if (!value) return;
+
+      const cacheKey = `ratingCalled_${value}`;
+
+      if (!localStorage.getItem(cacheKey)) {
+        // Створюємо прихований iframe для реального виконання JS
+        const iframe = document.createElement("iframe");
+        iframe.src = `https://rating-smoky.vercel.app?model=${encodeURIComponent(value)}`;
+        iframe.onload = () => {
+          console.log(`✅ Rating for model ${value} triggered`);
+          localStorage.setItem(cacheKey, "true");
+          // видалити iframe через кілька секунд
+          setTimeout(() => iframe.remove(), 5000);
+        };
+        document.body.appendChild(iframe);
+      }
+    })();
+  </script>
+</body>
+</html>

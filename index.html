@@ -50,7 +50,6 @@ function render(){
     div.className='card';
     div.innerHTML = `
       <h3>${m.name}</h3>
-      <p>Середня: ${m.average.toFixed(1)}</p>
       <p>Відгуків: ${m.count}</p>
       <button onclick="addRating(${m.id})">+1 до лічильника</button>
     `;
